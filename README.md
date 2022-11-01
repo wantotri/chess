@@ -2,6 +2,8 @@
 
 The classic chess game created using Rust (wasm) for "game engine" and HTML, CSS, Javascript for User Interface/Interaction.
 
+![chess_game_screenshot](./img/wasm_chess.png)
+
 ## How to Build
 
 In the project root directory

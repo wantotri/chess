@@ -1,0 +1,17 @@
+{
+  "name": "chess",
+  "version": "0.1.0",
+  "description": "Chess game in Web Assembly with Rust.",
+  "main": "index.js",
+  "author": "Kurnia Wanto <wanto47@gmail.com>",
+  "dependencies": {
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2"
+  },
+  "scripts": {
+    "prebuild": "wasm-pack build --no-typescript && rm dist/*.wasm",
+    "build": "webpack",
+    "postbuild": "serve -s dist",
+    "updatejs": "webpack && serve -s dist"
+  }
+}

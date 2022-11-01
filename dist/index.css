@@ -1,0 +1,161 @@
+#chess-game {
+    display: grid;
+    grid-template: repeat(8, auto) / repeat(8, auto);
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    #chess-game {
+        max-width: 600px;
+    }
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .game-container {
+        flex-direction: row;
+    }
+}
+
+.log-container {
+    width: 100%;
+}
+
+.history-container {
+    width: 100%;
+    height: 50vh;
+    overflow-y: scroll;
+    border: 1px solid lightgrey;
+    padding: 1rem;
+}
+
+.square {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: calc(100vw / 9);
+    aspect-ratio: 1;
+    border-radius: 0;
+    margin: 2px;
+    font-size: 1.3rem;
+}
+
+@media (min-width: 768px) {
+    .square {
+        min-width: 4rem;
+        font-size: 2rem;
+    }
+}
+
+.chess-piece-white {
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+}
+
+.chess-piece-black {
+    color: black;
+    text-shadow: -2px 0 white, 0 2px white, 2px 0 white, 0 -2px white;
+}
+
+.square.selected {
+    background-color: goldenrod !important;
+    border: 1px solid black;
+}
+
+.square.path {
+    background-color: cadetblue !important;
+    border: 1px solid black;
+}
+
+.square[id^='a']::before {
+    position: absolute;
+    top: 0;
+    left: 3px;
+    font-size: 0.7rem;
+}
+#a8::before { content: "8"; }
+#a7::before { content: "7"; }
+#a6::before { content: "6"; }
+#a5::before { content: "5"; }
+#a4::before { content: "4"; }
+#a3::before { content: "3"; }
+#a2::before { content: "2"; }
+#a1::before { content: "1"; }
+
+.square[id$='1']::after {
+    position: absolute;
+    bottom: 0;
+    left: 3px;
+    font-size: 0.7rem;
+}
+#a1::after { content: 'A'; }
+#b1::after { content: 'B'; }
+#c1::after { content: 'C'; }
+#d1::after { content: 'D'; }
+#e1::after { content: 'E'; }
+#f1::after { content: 'F'; }
+#g1::after { content: 'G'; }
+#h1::after { content: 'H'; }
+
+@media (min-width: 768px) {
+    .square[id^='a']::before,
+    .square[id$='1']::after {
+        font-size: 0.8rem;
+    }
+}
+
+.promotion-level-selector {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    z-index: 1;
+    /* border: 1px solid black; */
+}
+
+.promotion-level-selector a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    aspect-ratio: 1;
+    border: 1px solid black;
+    background-color: cadetblue;
+}
+
+.promotion-level-selector a:hover {
+    background-color: goldenrod;
+}
+
+.chess-captured-container {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    gap: 1rem;
+    min-height: 3rem;
+    font-size: 1rem;
+    flex-direction: row;
+    background-color: rgb(231, 231, 231);
+}
+
+@media (min-width: 768px) {
+    .chess-captured-container {
+        min-height: 4rem;
+        font-size: 1.5rem;
+    }
+}
+
+#chess-status-container {
+    margin-bottom: 2rem;
+}

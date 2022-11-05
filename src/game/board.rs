@@ -12,6 +12,7 @@ use super::{
     invert,
     get_enemy_color
 };
+use crate::error::Error::{self, *};
 
 /// Chess Board
 pub struct Board<T> {
@@ -22,7 +23,6 @@ pub struct Board<T> {
 impl<T: Display> Display for Board<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         for (_i, row) in self.cells.iter().enumerate().rev() {
-            // write!(f, "{} ", i+1)?;
             for cell in row.iter() {
                 if let Some(piece) = cell {
                     write!(f, "{} ", piece)?;
@@ -32,7 +32,6 @@ impl<T: Display> Display for Board<T> {
             };
             write!(f, "\n")?;
         };
-        // write!(f, "  a b c d e f g h\n")?;
         Ok(())
     }
 }
@@ -105,7 +104,7 @@ impl Board<Piece> {
     /// assert_eq!(piece.unwrap().level, Level::Rook);
     /// assert!(board.get("a3").unwrap().is_none());
     /// ```
-    pub fn get(&self, cell: &str) -> Result<Option<Piece>, String> {
+    pub fn get(&self, cell: &str) -> Result<Option<Piece>, Error> {
         let (row, col) = convert(cell)?;
         Ok(self.cells[row as usize][col as usize])
     }
@@ -124,7 +123,7 @@ impl Board<Piece> {
     /// assert_eq!(piece.unwrap().color, Color::White);
     /// assert_eq!(piece.unwrap().level, Level::Queen);
     /// ```
-    pub fn set(&mut self, cell: &str, piece: Option<Piece>) -> Result<(), String> {
+    pub fn set(&mut self, cell: &str, piece: Option<Piece>) -> Result<(), Error> {
         let (row, col) = convert(cell)?;
         self.cells[row as usize][col as usize] = piece;
         Ok(())
@@ -142,12 +141,12 @@ impl Board<Piece> {
         to: String,
         piece: Option<Piece>,
         has_moved: Option<bool>
-    ) -> Result<(), String> {
+    ) -> Result<(), Error> {
         Ok(self.history.push(History { from, to, captured: piece, has_moved }))
     }
 
     /// Show captured piece by color
-    pub fn get_captured(&self, color: Color) -> Result<Vec<Piece>, String> {
+    pub fn get_captured(&self, color: Color) -> Result<Vec<Piece>, Error> {
         let mut captured_piece = vec![];
         for hist in self.history.iter() {
             if let Some(piece) = hist.captured {
@@ -160,7 +159,7 @@ impl Board<Piece> {
     }
 
     /// Get all possible moves for a pawn
-    fn get_possible_moves_for_pawn(&self, cell: &str) -> Result<Vec<String>, String>  {
+    fn get_possible_moves_for_pawn(&self, cell: &str) -> Result<Vec<String>, Error>  {
         let piece = self.get(cell)?.unwrap();
         let (row, col) = convert(cell)?;
         let mut pos_mv = vec![];
@@ -216,7 +215,7 @@ impl Board<Piece> {
     /// assert_eq!(white_pawn, ["a3", "a4"]);
     /// assert_eq!(black_knight, ["a6", "c6"]);
     /// ```
-    pub fn get_possible_moves(&self, cell: &str) -> Result<Vec<String>, String> {
+    pub fn get_possible_moves(&self, cell: &str) -> Result<Vec<String>, Error> {
         let piece = self.get(cell)?.unwrap();
         let (row, col) = convert(cell)?;
         let mut pos_move = vec![];
@@ -278,7 +277,7 @@ impl Board<Piece> {
     /// assert_eq!(*paz.get("g1").unwrap(), ["e2", "f3", "h3"]);
     /// assert_eq!(paz.get("h1"), None);
     /// ```
-    pub fn get_possible_moves_by_color(&self, color: Color) -> Result<HashMap<String, Vec<String>>, String> {
+    pub fn get_possible_moves_by_color(&self, color: Color) -> Result<HashMap<String, Vec<String>>, Error> {
         let all_pos = self.get_pieces_positions_by_color(color)?;
         let mut possible_moves = HashMap::new();
 
@@ -306,13 +305,13 @@ impl Board<Piece> {
     /// assert_eq!(board.get("a4").unwrap().unwrap().color, Color::White);
     /// assert!(board.get("a2").unwrap().is_none());
     /// ```
-    pub fn moves_piece(&mut self, src_cell: &str, des_cell: &str) -> Result<String, String> {
+    pub fn moves_piece(&mut self, src_cell: &str, des_cell: &str) -> Result<String, Error> {
         let mut src_piece = self.get(src_cell)?.unwrap();
         let des_piece = self.get(des_cell)?;
         let mut has_moved = None;
 
         if !self.get_possible_moves(src_cell)?.iter().any(|s| { s == &des_cell }) {
-            return Err(format!("Illegal Moves: can't move {} to {}", src_cell, des_cell));
+            return Err(IllegalMoves(format!("can't move {} to {}", src_cell, des_cell)));
         }
 
         // change moved to true for pawn, rook, or a king
@@ -336,7 +335,6 @@ impl Board<Piece> {
             Some(piece) => Ok(format!("Moving {} {} from {} to {}, captured {} {}", src_piece.color, src_piece.level, src_cell, des_cell, piece.color, piece.level)),
             None => Ok(format!("Moving {} {} from {} to {}", src_piece.color, src_piece.level, src_cell, des_cell))
         }
-        // Ok(format!("Moving {} {} from {} to {}", src_piece.color, src_piece.level, src_cell, des_cell))
     }
 
     /// Undo the last moves in board history
@@ -354,9 +352,9 @@ impl Board<Piece> {
     /// assert_eq!(board.get("a2").unwrap().unwrap().color, Color::White);
     /// assert!(board.get("a4").unwrap().is_none());
     /// ```
-    pub fn undo_moves(&mut self) -> Result<String, String> {
+    pub fn undo_moves(&mut self) -> Result<String, Error> {
         if self.history.len() == 0 {
-            return Err("Already the oldest state.".to_owned());
+            return Err(GameError("Already the oldest state.".to_owned()));
         }
 
         let his = self.history.pop().unwrap();
@@ -380,23 +378,23 @@ impl Board<Piece> {
     /// first rank for Black. When this happens, the player can
     /// replace the pawn for a queen, a rook, a bishop, or a knight.
     ///
-    pub fn promote(&mut self, cell: &str, promotion_level: Level) -> Result<String, String> {
+    pub fn promote(&mut self, cell: &str, promotion_level: Level) -> Result<String, Error> {
         let piece = self.get(cell)?.unwrap();
 
         match piece.level {
             Level::Pawn => (),
-            _ => return Err("Only a pawn can be promoted.".to_owned())
+            _ => return Err(PromotionError("Only a pawn can be promoted.".to_owned()))
         }
 
         let (row, _col) = convert(cell)?;
         match piece.color {
-            Color::White => if row != 7 { return Err("Can't promote this pawn yet".to_owned()) },
-            Color::Black => if row != 0 { return Err("Can't promote this pawn yet".to_owned()) }
+            Color::White => if row != 7 { return Err(PromotionError("Can't promote this pawn yet".to_owned())) },
+            Color::Black => if row != 0 { return Err(PromotionError("Can't promote this pawn yet".to_owned())) }
         }
 
         match promotion_level {
-            Level::Pawn => return Err("Can't promote a pawn to a pawn.".to_owned()),
-            Level::King => return Err("Can't promote a pawn to a king.".to_owned()),
+            Level::Pawn => return Err(PromotionError("Can't promote a pawn to a pawn.".to_owned())),
+            Level::King => return Err(PromotionError("Can't promote a pawn to a king.".to_owned())),
             _ => ()
         }
 
@@ -415,7 +413,7 @@ impl Board<Piece> {
     /// * the square the king goes to and any intervening squares may not be under attack
     /// * however, there is nothing to prevent castling if the rook is under attack
     ///
-    pub fn castling(&mut self, king_cell: &str, rook_cell: &str) -> Result<String, String> {
+    pub fn castling(&mut self, king_cell: &str, rook_cell: &str) -> Result<String, Error> {
         let mut king = self.get(king_cell)?.unwrap();
         let mut rook = self.get(rook_cell)?.unwrap();
         let (king_row, king_col) = convert(king_cell)?;
@@ -423,15 +421,15 @@ impl Board<Piece> {
         let enemy_color = get_enemy_color(king.color);
 
         if king.color != rook.color {
-            return Err("King and Rook have different color".to_owned())
+            return Err(CastlingError("King and Rook have different color".to_owned()))
         }
 
         if self.is_king_checked(king.color)? {
-            return Err("King is in check.".to_owned());
+            return Err(CastlingError("King is in check.".to_owned()));
         }
 
         if king.moved.unwrap() || rook.moved.unwrap() {
-            return Err("King or Rook has already moved".to_owned())
+            return Err(CastlingError("King or Rook has already moved".to_owned()))
         }
 
         let (start, end, wr, wk, br, bk);
@@ -444,11 +442,11 @@ impl Board<Piece> {
         let paz = self.get_possible_attack_by_color(enemy_color)?;
         for y in (start + 1)..end {
             if let Some(_piece) = self.get(&invert(king_row, y)?)? {
-                return Err("Can't do castling, the path is blocked".to_owned());
+                return Err(CastlingError("Can't do castling, the path is blocked".to_owned()));
             }
             for (_key, val) in paz.iter() {
                 if val.iter().any(|p| { p == &invert(king_row, y).unwrap() }) {
-                    return Err("Can't do castling, the path is under attack".to_owned());
+                    return Err(CastlingError("Can't do castling, the path is under attack".to_owned()));
                 }
             }
         }
@@ -476,7 +474,7 @@ impl Board<Piece> {
     }
 
     /// Get all pieces position on the board by its color
-    pub fn get_pieces_positions_by_color(&self, color: Color) -> Result<Vec<String>, String> {
+    pub fn get_pieces_positions_by_color(&self, color: Color) -> Result<Vec<String>, Error> {
         let mut all_pos = vec![];
 
         for (y, row) in self.cells.iter().enumerate() {
@@ -494,7 +492,7 @@ impl Board<Piece> {
     }
 
     /// Get possible attack zone for a pawn
-    fn get_possible_attack_for_pawn(&self, cell: &str) -> Result<Vec<String>, String> {
+    fn get_possible_attack_for_pawn(&self, cell: &str) -> Result<Vec<String>, Error> {
         let piece = self.get(cell)?.unwrap();
         let (row, col) = convert(cell)?;
         let mut att = vec![];
@@ -546,7 +544,7 @@ impl Board<Piece> {
     /// assert_eq!(*paz.get("g1").unwrap(), ["e2", "f3", "h3"]);
     /// assert_eq!(paz.get("h1"), None);
     /// ```
-    pub fn get_possible_attack_by_color(&self, color: Color) -> Result<HashMap<String, Vec<String>>, String> {
+    pub fn get_possible_attack_by_color(&self, color: Color) -> Result<HashMap<String, Vec<String>>, Error> {
         let all_pos = self.get_pieces_positions_by_color(color)?;
         let mut attack_pos = HashMap::new();
         let mut paz: Vec<String>;
@@ -575,13 +573,13 @@ impl Board<Piece> {
     /// assert_eq!(board.get_king_position(Color::White).unwrap(), "e1");
     /// assert_eq!(board.get_king_position(Color::Black).unwrap(), "e8");
     /// ```
-    pub fn get_king_position(&self, color: Color) -> Result<String, String> {
+    pub fn get_king_position(&self, color: Color) -> Result<String, Error> {
         for pos in self.get_pieces_positions_by_color(color)?.iter() {
             if self.get(pos)?.unwrap().level == Level::King {
                 return Ok(pos.to_owned());
             }
         }
-        Err("King is not found.".to_owned())
+        Err(GameError("King is not found.".to_owned()))
     }
 
     /// Checking if the king is under attack (check)
@@ -599,7 +597,7 @@ impl Board<Piece> {
     /// assert_eq!(board.is_king_checked(Color::Black).unwrap(), true);
     /// assert_eq!(board.is_king_checked(Color::White).unwrap(), false);
     /// ```
-    pub fn is_king_checked(&self, king_color: Color) -> Result<bool, String> {
+    pub fn is_king_checked(&self, king_color: Color) -> Result<bool, Error> {
         let enemy_color = get_enemy_color(king_color);
         let king_pos = self.get_king_position(king_color)?;
 
@@ -613,7 +611,7 @@ impl Board<Piece> {
     }
 
     /// Checking if checkmate
-    pub fn is_checkmate(&mut self, king_color: Color) -> Result<bool, String> {
+    pub fn is_checkmate(&mut self, king_color: Color) -> Result<bool, Error> {
         if !self.is_king_checked(king_color)? {
             return Ok(false)
         }
@@ -633,7 +631,7 @@ impl Board<Piece> {
     }
 
     /// Check is there a safe move(s) given the color
-    pub fn has_safe_moves(&mut self, color: Color) -> Result<bool, String> {
+    pub fn has_safe_moves(&mut self, color: Color) -> Result<bool, Error> {
         for (piece, pos_moves) in self.get_possible_moves_by_color(color)?.iter() {
             for pos in pos_moves.iter() {
                 self.moves_piece(piece, pos)?;
@@ -648,7 +646,7 @@ impl Board<Piece> {
     }
 
     /// Check if it draw (no more possible moves)
-    pub fn is_draw(&mut self, color: Color) -> Result<bool, String> {
+    pub fn is_draw(&mut self, color: Color) -> Result<bool, Error> {
         if self.is_king_checked(color)? { return Ok(false) }
         if self.has_safe_moves(color)? { return Ok(false) }
         Ok(true)

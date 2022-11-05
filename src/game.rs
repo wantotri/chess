@@ -17,6 +17,7 @@ pub mod prelude {
 }
 
 use prelude::*;
+use crate::error::Error::{self, *};
 
 /// Convert chess notation into tuple (row, col)
 ///
@@ -26,7 +27,7 @@ use prelude::*;
 /// use chess::game::convert;
 /// assert_eq!(convert("a1").unwrap(), (0, 0));
 /// ```
-pub fn convert(cell: &str) -> Result<(i8, i8), String> {
+pub fn convert(cell: &str) -> Result<(i8, i8), Error> {
     let col = match &cell[0..1] {
         "a" => 0,
         "b" => 1,
@@ -36,12 +37,12 @@ pub fn convert(cell: &str) -> Result<(i8, i8), String> {
         "f" => 5,
         "g" => 6,
         "h" => 7,
-        _ => return Err("col must be one of (abcdefgh)".to_owned()),
+        _ => return Err(InvalidNotation("use proper notation, examples: 'a1' 'b2' 'h8'".to_owned())),
     };
 
     match (&cell[1..2]).parse::<i8>() {
-        Ok(n) if n <= 8 || n > 0 => return Ok((n - 1, col)),
-        _ => return Err("Cannot parse cell, use proper chess notation".to_owned())
+        Ok(n) if n <= 8 && n > 0 => return Ok((n - 1, col)),
+        _ => return Err(InvalidNotation("use proper notation, examples: 'a1' 'b2' 'h8'".to_owned()))
     };
 }
 
@@ -53,7 +54,7 @@ pub fn convert(cell: &str) -> Result<(i8, i8), String> {
 /// use chess::game::invert;
 /// assert_eq!(invert(0, 0).unwrap(), "a1");
 /// ```
-pub fn invert(row: i8, col: i8) -> Result<String, String> {
+pub fn invert(row: i8, col: i8) -> Result<String, Error> {
     let col = match col {
         0 => "a",
         1 => "b",
@@ -63,11 +64,11 @@ pub fn invert(row: i8, col: i8) -> Result<String, String> {
         5 => "f",
         6 => "g",
         7 => "h",
-        _ => return Err("col must be one of (01234567)".to_owned()),
+        _ => return Err(InvalidNotation("col must be one of (01234567)".to_owned())),
     };
 
     if row > 7 || row < 0 {
-        return Err("row must be one of (01234567)".to_owned());
+        return Err(InvalidNotation("row must be one of (01234567)".to_owned()));
     }
 
     Ok(format!("{}{}", col, row + 1))

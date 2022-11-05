@@ -1,4 +1,5 @@
 pub mod game;
+pub mod error;
 
 use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
@@ -39,7 +40,7 @@ pub fn move_piece(src_cell: &str, des_cell: &str) -> String {
                 if piece.color == rook.color && !rook.moved.unwrap() {
                     match board.borrow_mut().castling(src_cell, des_cell) {
                         Ok(msg) => return msg,
-                        Err(err) => return err
+                        Err(err) => return err.to_string()
                     }
                 }
             }

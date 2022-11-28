@@ -95,14 +95,14 @@ impl Board<Piece> {
     /// ### Examples
     ///
     /// ```
-    /// use chess::game::prelude::*;
-    ///
+    /// # use chess::game::prelude::*;
     /// let board = Board::new();
-    /// let piece = board.get("a1").unwrap();
+    /// let piece = board.get("a1")?;
     ///
     /// assert_eq!(piece.unwrap().color, Color::White);
     /// assert_eq!(piece.unwrap().level, Level::Rook);
-    /// assert!(board.get("a3").unwrap().is_none());
+    /// # assert!(board.get("a3")?.is_none());
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn get(&self, cell: &str) -> Result<Option<Piece>, Error> {
         let (row, col) = convert(cell)?;
@@ -114,14 +114,15 @@ impl Board<Piece> {
     /// ### Examples
     ///
     /// ```
-    /// use chess::game::prelude::*;
-    ///
+    /// # use chess::game::prelude::*;
     /// let mut board = Board::new();
-    /// board.set("a1", Some(Piece::new(Level::Queen, Color::White)));
+    /// let white_queen = Piece::new(Level::Queen, Color::White);
+    /// board.set("a1", Some(white_queen));
     ///
-    /// let piece = board.get("a1").unwrap();
-    /// assert_eq!(piece.unwrap().color, Color::White);
-    /// assert_eq!(piece.unwrap().level, Level::Queen);
+    /// # let piece = board.get("a1")?;
+    /// # assert_eq!(piece.unwrap().color, Color::White);
+    /// # assert_eq!(piece.unwrap().level, Level::Queen);
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn set(&mut self, cell: &str, piece: Option<Piece>) -> Result<(), Error> {
         let (row, col) = convert(cell)?;
@@ -206,14 +207,14 @@ impl Board<Piece> {
     /// ### Examples
     ///
     /// ```
-    /// use chess::game::prelude::*;
-    ///
+    /// # use chess::game::prelude::*;
     /// let board = Board::new();
-    /// let white_pawn = board.get_possible_moves("a2").unwrap();
-    /// let black_knight = board.get_possible_moves("b8").unwrap();
+    /// let white_pawn = board.get_possible_moves("a2")?;
+    /// let black_knight = board.get_possible_moves("b8")?;
     ///
     /// assert_eq!(white_pawn, ["a3", "a4"]);
     /// assert_eq!(black_knight, ["a6", "c6"]);
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn get_possible_moves(&self, cell: &str) -> Result<Vec<String>, Error> {
         let piece = self.get(cell)?.unwrap();
@@ -264,11 +265,10 @@ impl Board<Piece> {
     /// ### Examples
     ///
     /// ```
-    /// use chess::game::prelude::*;
-    ///
+    /// # use chess::game::prelude::*;
     /// let mut board = Board::new();
-    /// board.moves_piece("e2", "e4").unwrap();
-    /// let paz = board.get_possible_moves_by_color(Color::White).unwrap();
+    /// board.moves_piece("e2", "e4")?;
+    /// let paz = board.get_possible_moves_by_color(Color::White)?;
     ///
     /// assert_eq!(*paz.get("c2").unwrap(), ["c3", "c4"]);
     /// assert_eq!(*paz.get("d1").unwrap(), ["e2", "f3", "g4", "h5"]);
@@ -276,6 +276,7 @@ impl Board<Piece> {
     /// assert_eq!(*paz.get("f1").unwrap(), ["a6", "b5", "c4", "d3", "e2"]);
     /// assert_eq!(*paz.get("g1").unwrap(), ["e2", "f3", "h3"]);
     /// assert_eq!(paz.get("h1"), None);
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn get_possible_moves_by_color(&self, color: Color) -> Result<HashMap<String, Vec<String>>, Error> {
         let all_pos = self.get_pieces_positions_by_color(color)?;
@@ -296,14 +297,14 @@ impl Board<Piece> {
     /// ### Examples
     ///
     /// ```
-    /// use chess::game::prelude::*;
-    ///
+    /// # use chess::game::prelude::*;
     /// let mut board = Board::new();
-    /// board.moves_piece("a2", "a4").unwrap();
+    /// board.moves_piece("a2", "a4")?;
     ///
-    /// assert_eq!(board.get("a4").unwrap().unwrap().level, Level::Pawn);
-    /// assert_eq!(board.get("a4").unwrap().unwrap().color, Color::White);
-    /// assert!(board.get("a2").unwrap().is_none());
+    /// assert_eq!(board.get("a4")?.unwrap().level, Level::Pawn);
+    /// assert_eq!(board.get("a4")?.unwrap().color, Color::White);
+    /// assert!(board.get("a2")?.is_none());
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn moves_piece(&mut self, src_cell: &str, des_cell: &str) -> Result<String, Error> {
         let mut src_piece = self.get(src_cell)?.unwrap();
@@ -342,15 +343,15 @@ impl Board<Piece> {
     /// ### Examples
     ///
     /// ```
-    /// use chess::game::prelude::*;
-    ///
+    /// # use chess::game::prelude::*;
     /// let mut board = Board::new();
-    /// board.moves_piece("a2", "a4").unwrap();
-    /// board.undo_moves().unwrap();
+    /// board.moves_piece("a2", "a4")?;
+    /// board.undo_moves()?;
     ///
-    /// assert_eq!(board.get("a2").unwrap().unwrap().level, Level::Pawn);
-    /// assert_eq!(board.get("a2").unwrap().unwrap().color, Color::White);
-    /// assert!(board.get("a4").unwrap().is_none());
+    /// assert_eq!(board.get("a2")?.unwrap().level, Level::Pawn);
+    /// assert_eq!(board.get("a2")?.unwrap().color, Color::White);
+    /// assert!(board.get("a4")?.is_none());
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn undo_moves(&mut self) -> Result<String, Error> {
         if self.history.len() == 0 {
@@ -531,11 +532,10 @@ impl Board<Piece> {
     /// ### Examples
     ///
     /// ```
-    /// use chess::game::prelude::*;
-    ///
+    /// # use chess::game::prelude::*;
     /// let mut board = Board::new();
-    /// board.moves_piece("e2", "e4").unwrap();
-    /// let paz = board.get_possible_attack_by_color(Color::White).unwrap();
+    /// board.moves_piece("e2", "e4")?;
+    /// let paz = board.get_possible_attack_by_color(Color::White)?;
     ///
     /// assert_eq!(*paz.get("c2").unwrap(), ["b3", "d3"]);
     /// assert_eq!(*paz.get("d1").unwrap(), ["e2", "f3", "g4", "h5"]);
@@ -543,6 +543,7 @@ impl Board<Piece> {
     /// assert_eq!(*paz.get("f1").unwrap(), ["a6", "b5", "c4", "d3", "e2"]);
     /// assert_eq!(*paz.get("g1").unwrap(), ["e2", "f3", "h3"]);
     /// assert_eq!(paz.get("h1"), None);
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn get_possible_attack_by_color(&self, color: Color) -> Result<HashMap<String, Vec<String>>, Error> {
         let all_pos = self.get_pieces_positions_by_color(color)?;
@@ -567,11 +568,11 @@ impl Board<Piece> {
     /// ### Examples
     ///
     /// ```
-    /// use chess::game::prelude::*;
-    ///
+    /// # use chess::game::prelude::*;
     /// let board = Board::new();
-    /// assert_eq!(board.get_king_position(Color::White).unwrap(), "e1");
-    /// assert_eq!(board.get_king_position(Color::Black).unwrap(), "e8");
+    /// assert_eq!(board.get_king_position(Color::White)?, "e1");
+    /// assert_eq!(board.get_king_position(Color::Black)?, "e8");
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn get_king_position(&self, color: Color) -> Result<String, Error> {
         for pos in self.get_pieces_positions_by_color(color)?.iter() {
@@ -587,15 +588,15 @@ impl Board<Piece> {
     /// ### Examples
     ///
     /// ```
-    /// use chess::game::prelude::*;
-    ///
+    /// # use chess::game::prelude::*;
     /// let mut board = Board::new();
-    /// board.moves_piece("e2", "e4").unwrap();
-    /// board.moves_piece("f7", "f6").unwrap();
-    /// board.moves_piece("d1", "h5").unwrap();
+    /// board.moves_piece("e2", "e4")?;
+    /// board.moves_piece("f7", "f6")?;
+    /// board.moves_piece("d1", "h5")?;
     ///
-    /// assert_eq!(board.is_king_checked(Color::Black).unwrap(), true);
-    /// assert_eq!(board.is_king_checked(Color::White).unwrap(), false);
+    /// assert_eq!(board.is_king_checked(Color::Black)?, true);
+    /// assert_eq!(board.is_king_checked(Color::White)?, false);
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn is_king_checked(&self, king_color: Color) -> Result<bool, Error> {
         let enemy_color = get_enemy_color(king_color);
@@ -659,164 +660,179 @@ mod test {
     use super::*;
 
     #[test]
-    fn board_possible_moves_pawn() {
+    fn board_possible_moves_pawn() -> Result<(), Error> {
         let board = Board::new();
         let moves = board.get_possible_moves_for_pawn("a2");
-        assert_eq!(moves.unwrap(), ["a3", "a4"]);
+        assert_eq!(moves?, ["a3", "a4"]);
+        Ok(())
     }
 
     #[test]
-    fn board_possible_moves_knight() {
+    fn board_possible_moves_knight() -> Result<(), Error> {
         let board = Board::new();
         let moves = board.get_possible_moves("b1");
-        assert_eq!(moves.unwrap(), ["a3", "c3"]);
+        assert_eq!(moves?, ["a3", "c3"]);
+        Ok(())
     }
 
     #[test]
-    fn board_possible_moves_rook(){
+    fn board_possible_moves_rook() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("a2", "a4").unwrap();
+        board.moves_piece("a2", "a4")?;
         let moves = board.get_possible_moves("a1");
-        assert_eq!(moves.unwrap(), ["a2", "a3"]);
+        assert_eq!(moves?, ["a2", "a3"]);
+        Ok(())
     }
 
     #[test]
-    fn board_possible_moves_bishop() {
+    fn board_possible_moves_bishop() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("e2", "e4").unwrap();
+        board.moves_piece("e2", "e4")?;
         let moves = board.get_possible_moves("f1");
-        assert_eq!(moves.unwrap(), ["a6", "b5", "c4", "d3", "e2"]);
+        assert_eq!(moves?, ["a6", "b5", "c4", "d3", "e2"]);
+        Ok(())
     }
 
     #[test]
-    fn board_possible_moves_queen() {
+    fn board_possible_moves_queen() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("d2", "d4").unwrap();
-        board.moves_piece("e2", "e4").unwrap();
+        board.moves_piece("d2", "d4")?;
+        board.moves_piece("e2", "e4")?;
         let moves = board.get_possible_moves("d1");
-        assert_eq!(moves.unwrap(), ["d2", "d3", "e2", "f3", "g4", "h5"]);
+        assert_eq!(moves?, ["d2", "d3", "e2", "f3", "g4", "h5"]);
+        Ok(())
     }
 
     #[test]
-    fn board_possible_moves_king() {
+    fn board_possible_moves_king() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("d2", "d4").unwrap();
-        board.moves_piece("e2", "e4").unwrap();
+        board.moves_piece("d2", "d4")?;
+        board.moves_piece("e2", "e4")?;
         let moves = board.get_possible_moves("e1");
-        assert_eq!(moves.unwrap(), ["d2", "e2"]);
+        assert_eq!(moves?, ["d2", "e2"]);
+        Ok(())
     }
 
     #[test]
-    fn board_possible_moves_by_color() {
+    fn board_possible_moves_by_color() -> Result<(), Error>  {
         let mut board = Board::new();
-        board.moves_piece("e2", "e4").unwrap();
-        let paz = board.get_possible_moves_by_color(Color::White).unwrap();
+        board.moves_piece("e2", "e4")?;
+        let paz = board.get_possible_moves_by_color(Color::White)?;
         assert_eq!(*paz.get("c2").unwrap(), ["c3", "c4"]);
         assert_eq!(*paz.get("d1").unwrap(), ["e2", "f3", "g4", "h5"]);
         assert_eq!(*paz.get("e1").unwrap(), ["e2"]);
         assert_eq!(*paz.get("f1").unwrap(), ["a6", "b5", "c4", "d3", "e2"]);
         assert_eq!(*paz.get("g1").unwrap(), ["e2", "f3", "h3"]);
         assert_eq!(paz.get("h1"), None);
+        Ok(())
     }
 
     #[test]
-    fn board_moves_piece() {
+    fn board_moves_piece() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("a2", "a4").unwrap();
-        assert_eq!(board.get("a4").unwrap().unwrap().level, Level::Pawn);
-        assert_eq!(board.get("a4").unwrap().unwrap().color, Color::White);
-        assert!(board.get("a2").unwrap().is_none());
+        board.moves_piece("a2", "a4")?;
+        assert_eq!(board.get("a4")?.unwrap().level, Level::Pawn);
+        assert_eq!(board.get("a4")?.unwrap().color, Color::White);
+        assert!(board.get("a2")?.is_none());
         assert_eq!(board.history.len(), 1);
         assert_eq!(board.history[0].from, "a2");
         assert_eq!(board.history[0].to, "a4");
         assert!(board.history[0].captured.is_none());
         assert!(board.history[0].has_moved.unwrap());
+        Ok(())
     }
 
     #[test]
-    fn board_undo_moves() {
+    fn board_undo_moves() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("a2", "a4").unwrap();
-        board.undo_moves().unwrap();
-        let piece = board.get("a2").unwrap().unwrap();
+        board.moves_piece("a2", "a4")?;
+        board.undo_moves()?;
+        let piece = board.get("a2")?.unwrap();
         assert_eq!(piece.level, Level::Pawn);
         assert_eq!(piece.color, Color::White);
         assert_eq!(piece.moved, Some(false));
-        assert!(board.get("a4").unwrap().is_none());
+        assert!(board.get("a4")?.is_none());
         assert_eq!(board.history.len(), 0);
+        Ok(())
     }
 
     #[test]
-    fn board_possible_attack_by_color() {
+    fn board_possible_attack_by_color() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("e2", "e4").unwrap();
-        let paz = board.get_possible_attack_by_color(Color::White).unwrap();
+        board.moves_piece("e2", "e4")?;
+        let paz = board.get_possible_attack_by_color(Color::White)?;
         assert_eq!(*paz.get("c2").unwrap(), ["b3", "d3"]);
         assert_eq!(*paz.get("d1").unwrap(), ["e2", "f3", "g4", "h5"]);
         assert_eq!(*paz.get("e1").unwrap(), ["e2"]);
         assert_eq!(*paz.get("f1").unwrap(), ["a6", "b5", "c4", "d3", "e2"]);
         assert_eq!(*paz.get("g1").unwrap(), ["e2", "f3", "h3"]);
         assert_eq!(paz.get("h1"), None);
+        Ok(())
     }
 
     #[test]
-    fn board_get_king_position() {
+    fn board_get_king_position() -> Result<(), Error> {
         let board = Board::new();
-        assert_eq!(board.get_king_position(Color::White).unwrap(), "e1");
-        assert_eq!(board.get_king_position(Color::Black).unwrap(), "e8");
+        assert_eq!(board.get_king_position(Color::White)?, "e1");
+        assert_eq!(board.get_king_position(Color::Black)?, "e8");
+        Ok(())
     }
 
     #[test]
-    fn board_is_king_checked() {
+    fn board_is_king_checked() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("e2", "e4").unwrap();
-        board.moves_piece("f7", "f6").unwrap();
-        board.moves_piece("d1", "h5").unwrap();
-        assert_eq!(board.is_king_checked(Color::Black).unwrap(), true);
-        assert_eq!(board.is_king_checked(Color::White).unwrap(), false);
+        board.moves_piece("e2", "e4")?;
+        board.moves_piece("f7", "f6")?;
+        board.moves_piece("d1", "h5")?;
+        assert_eq!(board.is_king_checked(Color::Black)?, true);
+        assert_eq!(board.is_king_checked(Color::White)?, false);
+        Ok(())
     }
 
     #[test]
-    fn board_is_checkmate() {
+    fn board_is_checkmate() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("e2", "e4").unwrap();
-        board.moves_piece("e7", "e5").unwrap();
-        board.moves_piece("d1", "f3").unwrap();
-        board.moves_piece("b8", "c6").unwrap();
-        board.moves_piece("f1", "c4").unwrap();
-        board.moves_piece("f8", "c5").unwrap();
-        assert!(!board.is_checkmate(Color::Black).unwrap());
-        board.moves_piece("f3", "f7").unwrap();
-        assert!(board.is_checkmate(Color::Black).unwrap());
+        board.moves_piece("e2", "e4")?;
+        board.moves_piece("e7", "e5")?;
+        board.moves_piece("d1", "f3")?;
+        board.moves_piece("b8", "c6")?;
+        board.moves_piece("f1", "c4")?;
+        board.moves_piece("f8", "c5")?;
+        assert!(!board.is_checkmate(Color::Black)?);
+        board.moves_piece("f3", "f7")?;
+        assert!(board.is_checkmate(Color::Black)?);
+        Ok(())
     }
 
     #[test]
-    fn board_castling() {
+    fn board_castling() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("e2", "e4").unwrap();
-        board.moves_piece("e7", "e5").unwrap();
-        board.moves_piece("g1", "f3").unwrap();
-        board.moves_piece("b8", "c6").unwrap();
-        board.moves_piece("f1", "c4").unwrap();
-        board.moves_piece("f8", "c5").unwrap();
-        board.castling("e1", "h1").unwrap();
-        assert!(board.get("e1").unwrap().is_none());
-        assert_eq!(board.get("f1").unwrap().unwrap().level, Level::Rook);
-        assert_eq!(board.get("g1").unwrap().unwrap().level, Level::King);
-        assert!(board.get("h1").unwrap().is_none());
+        board.moves_piece("e2", "e4")?;
+        board.moves_piece("e7", "e5")?;
+        board.moves_piece("g1", "f3")?;
+        board.moves_piece("b8", "c6")?;
+        board.moves_piece("f1", "c4")?;
+        board.moves_piece("f8", "c5")?;
+        board.castling("e1", "h1")?;
+        assert!(board.get("e1")?.is_none());
+        assert_eq!(board.get("f1")?.unwrap().level, Level::Rook);
+        assert_eq!(board.get("g1")?.unwrap().level, Level::King);
+        assert!(board.get("h1")?.is_none());
+        Ok(())
     }
 
     #[test]
-    fn board_promote() {
+    fn board_promote() -> Result<(), Error> {
         let mut board = Board::new();
-        board.moves_piece("h2", "h4").unwrap();
-        board.moves_piece("h4", "h5").unwrap();
-        board.moves_piece("h5", "h6").unwrap();
-        board.moves_piece("h6", "g7").unwrap();
-        board.moves_piece("g7", "f8").unwrap();
-        board.promote("f8", Level::Queen).unwrap();
-        assert_eq!(board.get("f8").unwrap().unwrap().level, Level::Queen);
-        assert_eq!(board.get("f8").unwrap().unwrap().color, Color::White);
+        board.moves_piece("h2", "h4")?;
+        board.moves_piece("h4", "h5")?;
+        board.moves_piece("h5", "h6")?;
+        board.moves_piece("h6", "g7")?;
+        board.moves_piece("g7", "f8")?;
+        board.promote("f8", Level::Queen)?;
+        assert_eq!(board.get("f8")?.unwrap().level, Level::Queen);
+        assert_eq!(board.get("f8")?.unwrap().color, Color::White);
+        Ok(())
     }
 
 }

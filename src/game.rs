@@ -14,6 +14,7 @@ pub mod prelude {
     pub use crate::piece::Piece;
     pub use crate::history::History;
     pub use crate::board::Board;
+    pub use crate::error::Error;
 }
 
 use prelude::*;
@@ -25,7 +26,8 @@ use crate::error::Error::{self, *};
 ///
 /// ```
 /// use chess::game::convert;
-/// assert_eq!(convert("a1").unwrap(), (0, 0));
+/// assert_eq!(convert("a1")?, (0, 0));
+/// # Ok::<(), chess::error::Error>(())
 /// ```
 pub fn convert(cell: &str) -> Result<(i8, i8), Error> {
     let col = match &cell[0..1] {
@@ -52,7 +54,8 @@ pub fn convert(cell: &str) -> Result<(i8, i8), Error> {
 ///
 /// ```
 /// use chess::game::invert;
-/// assert_eq!(invert(0, 0).unwrap(), "a1");
+/// assert_eq!(invert(0, 0)?, "a1");
+/// # Ok::<(), chess::error::Error>(())
 /// ```
 pub fn invert(row: i8, col: i8) -> Result<String, Error> {
     let col = match col {
@@ -95,15 +98,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn converting() {
-        assert_eq!(convert("a1").unwrap(), (0, 0));
-        assert_eq!(convert("h8").unwrap(), (7, 7));
+    fn converting() -> Result<(), Error> {
+        assert_eq!(convert("a1")?, (0, 0));
+        assert_eq!(convert("h8")?, (7, 7));
+        Ok(())
     }
 
     #[test]
-    fn inverting() {
-        assert_eq!(invert(0, 0).unwrap(), "a1");
-        assert_eq!(invert(7, 7).unwrap(), "h8");
+    fn inverting() -> Result<(), Error> {
+        assert_eq!(invert(0, 0)?, "a1");
+        assert_eq!(invert(7, 7)?, "h8");
+        Ok(())
     }
 
     #[test]

@@ -1,6 +1,7 @@
 use chess::game::prelude::*;
+use chess::error::Error;
 
-fn main() {
+fn main() -> Result<(), Error> {
     let mut board = Board::new();
 
     moves_and_print(&mut board, "e2", "e4");
@@ -11,9 +12,11 @@ fn main() {
     moves_and_print(&mut board, "b8", "c6");
     moves_and_print(&mut board, "f3", "f7");
 
-    if board.is_checkmate(Color::Black).unwrap() {
+    if board.is_checkmate(Color::Black)? {
         println!("Checkmate. White Win.")
     }
+
+    Ok(())
 }
 
 fn moves_and_print(board: &mut Board<Piece>, src_cell: &str, des_cell: &str) {
